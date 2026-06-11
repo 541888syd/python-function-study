@@ -1,0 +1,112 @@
+{
+  "words": [
+    {
+      "id": "1c477849-1fbf-4171-b141-05491377e98f",
+      "word": "exists",
+      "meaning": "存在量词（exist 的复数）",
+      "tags": [],
+      "createdAt": "2026-06-11T13:02:41.218Z",
+      "reviewCount": 2,
+      "correctCount": 1,
+      "lastReviewedAt": "2026-06-11T13:03:15.481Z",
+      "mastery": 0.5,
+      "status": "learning"
+    },
+    {
+      "id": "67ab9330-4c62-45b3-b918-90880fca466c",
+      "word": "encoding",
+      "meaning": "编码",
+      "tags": [],
+      "createdAt": "2026-06-11T13:09:03.299Z",
+      "reviewCount": 0,
+      "correctCount": 0,
+      "lastReviewedAt": null,
+      "mastery": 0,
+      "status": "new"
+    },
+    {
+      "id": "9321c355-cd33-4812-b28f-d769b88a96e4",
+      "word": "ensure",
+      "meaning": "确保",
+      "tags": [],
+      "createdAt": "2026-06-11T13:10:12.512Z",
+      "reviewCount": 0,
+      "correctCount": 0,
+      "lastReviewedAt": null,
+      "mastery": 0,
+      "status": "new"
+    },
+    {
+      "id": "644da6c6-f34a-43cb-845c-de067e9ce01c",
+      "word": "indent",
+      "meaning": "缩进",
+      "tags": [],
+      "createdAt": "2026-06-11T13:11:02.073Z",
+      "reviewCount": 0,
+      "correctCount": 0,
+      "lastReviewedAt": null,
+      "mastery": 0,
+      "status": "new"
+    },
+    {
+      "id": "2f0bb2f0-c30d-4e33-8991-4ff6c8ecd01e",
+      "word": "load",
+      "meaning": "装入，装载",
+      "tags": [],
+      "createdAt": "2026-06-11T13:11:39.938Z",
+      "reviewCount": 0,
+      "correctCount": 0,
+      "lastReviewedAt": null,
+      "mastery": 0,
+      "status": "new"
+    },
+    {
+      "id": "ccc5bd6f-16ab-44bd-bfd6-aaa005468a2d",
+      "word": "dump",
+      "meaning": "转存，丢弃，抛弃",
+      "tags": [],
+      "createdAt": "2026-06-11T13:12:32.777Z",
+      "reviewCount": 0,
+      "correctCount": 0,
+      "lastReviewedAt": null,
+      "mastery": 0,
+      "status": "new"
+    },
+    {
+      "id": "94e4bc89-a851-471a-bac1-4cdff0386237",
+      "word": "contacts",
+      "meaning": "联系人，联系方式",
+      "tags": [],
+      "createdAt": "2026-06-11T13:12:54.224Z",
+      "reviewCount": 0,
+      "correctCount": 0,
+      "lastReviewedAt": null,
+      "mastery": 0,
+      "status": "new"
+    },
+    {
+      "id": "c73973d4-2328-47b1-b1e0-27021bcd9367",
+      "word": "repetition",
+      "meaning": "重复，重说，重做",
+      "tags": [],
+      "createdAt": "2026-06-11T13:35:23.443Z",
+      "reviewCount": 0,
+      "correctCount": 0,
+      "lastReviewedAt": null,
+      "mastery": 0,
+      "status": "new"
+    },
+    {
+      "id": "db990a6f-3e86-43af-a928-e4efd23479a9",
+      "word": "digit",
+      "meaning": "n. （零到九中的任一）数字；手指，脚趾",
+      "tags": [],
+      "createdAt": "2026-06-11T13:42:01.234Z",
+      "reviewCount": 0,
+      "correctCount": 0,
+      "lastReviewedAt": null,
+      "mastery": 0,
+      "status": "new"
+    }
+  ]
+}

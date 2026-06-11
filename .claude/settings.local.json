@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(where npm *)",
+      "Bash(cmd //c \"where npm\")",
+      "Bash(ls \"C:/Program Files/nodejs/\" 2>/dev/null && echo \"FOUND\" || echo \"NOT FOUND\")",
+      "Read(//c/Program Files/**)"
+    ]
+  }
+}
