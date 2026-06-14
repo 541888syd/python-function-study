@@ -1,8 +1,8 @@
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import type { PracticeWord } from '../types';
+import type { PracticeFunction } from '../types';
 
 interface Result {
-  word: PracticeWord;
+  func: PracticeFunction;
   userInput: string;
   correct: boolean;
   correctAnswer: string;
@@ -29,7 +29,8 @@ export default function PracticeResult() {
   const skippedCount = results.filter(r => r.skipped).length;
   const wrongCount = results.filter(r => !r.correct && !r.skipped).length;
   const accuracy = results.length > 0 ? Math.round((correctCount / results.length) * 100) : 0;
-  const avgTime = results.length > 0 ? (results.reduce((s, r) => s + r.timeSpent, 0) / results.length).toFixed(1) : '0';
+  const avgTime = results.length > 0
+    ? (results.reduce((s, r) => s + r.timeSpent, 0) / results.length).toFixed(1) : '0';
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -68,27 +69,29 @@ export default function PracticeResult() {
         <h2 className="text-lg font-semibold mb-3">答题详情</h2>
         <div className="space-y-2 max-h-80 overflow-y-auto">
           {results.map((r, i) => (
-            <div
-              key={i}
+            <div key={i}
               className={`flex items-center justify-between p-3 rounded-lg ${
                 r.correct ? 'bg-green-50' : r.skipped ? 'bg-gray-50' : 'bg-red-50'
-              }`}
-            >
-              <div className="flex items-center gap-3">
+              }`}>
+              <div className="flex items-center gap-3 min-w-0">
                 <span className={r.correct ? 'text-green-500' : r.skipped ? 'text-gray-400' : 'text-red-500'}>
                   {r.correct ? '✅' : r.skipped ? '⏭️' : '❌'}
                 </span>
-                <div>
-                  <span className="font-medium">{r.word.word}</span>
-                  <span className="text-gray-400 mx-1">—</span>
-                  <span className="text-gray-500 text-sm">{r.word.meaning}</span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 font-mono">
+                      {r.func.library}
+                    </span>
+                    <span className="font-medium font-mono">{r.func.name}</span>
+                  </div>
+                  <p className="text-gray-500 text-xs truncate">{r.func.description}</p>
                 </div>
               </div>
-              <div className="text-sm">
+              <div className="text-sm shrink-0 ml-2">
                 {!r.correct && !r.skipped && (
                   <div className="text-right">
                     <div className="text-red-500 line-through">{r.userInput || '(空)'}</div>
-                    <div className="text-green-600">{r.correctAnswer}</div>
+                    <div className="text-green-600 font-mono">{r.correctAnswer}</div>
                   </div>
                 )}
                 <div className="text-gray-400 text-xs text-right">{r.timeSpent.toFixed(1)}s</div>

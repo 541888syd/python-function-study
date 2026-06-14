@@ -1,24 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { statsApi, practiceApi, wordsApi } from '../api';
-import type { OverviewStats, TodayProgress, Word } from '../types';
+import { statsApi, practiceApi, functionsApi } from '../api';
+import type { OverviewStats, TodayProgress, PythonFunction } from '../types';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [progress, setProgress] = useState<TodayProgress | null>(null);
-  const [recentWords, setRecentWords] = useState<Word[]>([]);
+  const [recentFuncs, setRecentFuncs] = useState<PythonFunction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       statsApi.overview(),
       practiceApi.getToday(),
-      wordsApi.list(),
-    ]).then(([s, p, w]) => {
+      functionsApi.list(),
+    ]).then(([s, p, f]) => {
       setStats(s);
       setProgress(p);
-      setRecentWords(w.words.slice(0, 5));
+      setRecentFuncs(f.functions.slice(0, 5));
     }).catch(console.error)
     .finally(() => setLoading(false));
   }, []);
@@ -49,7 +49,7 @@ export default function Dashboard() {
             </h2>
             <p className="text-primary-100 text-sm">
               {progress && progress.completed < progress.goal
-                ? `还有 ${progress.goal - progress.completed} 个单词等你练习`
+                ? `还有 ${progress.goal - progress.completed} 个函数等你练习`
                 : '继续保持，巩固记忆！'}
             </p>
           </div>
@@ -65,9 +65,9 @@ export default function Dashboard() {
       {/* Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div className="card text-center">
-          <div className="text-3xl mb-1">📚</div>
-          <div className="text-2xl font-bold text-gray-800">{stats?.totalWords || 0}</div>
-          <div className="text-sm text-gray-400">词库总数</div>
+          <div className="text-3xl mb-1">📦</div>
+          <div className="text-2xl font-bold text-gray-800">{stats?.totalFunctions || 0}</div>
+          <div className="text-sm text-gray-400">函数总数</div>
         </div>
         <div className="card text-center">
           <div className="text-3xl mb-1">✅</div>
@@ -81,7 +81,9 @@ export default function Dashboard() {
         </div>
         <div className="card text-center">
           <div className="text-3xl mb-1">🎯</div>
-          <div className="text-2xl font-bold text-primary-600">{stats ? Math.round((stats.masteredWords / Math.max(stats.totalWords, 1)) * 100) : 0}%</div>
+          <div className="text-2xl font-bold text-primary-600">
+            {stats ? Math.round((stats.masteredFunctions / Math.max(stats.totalFunctions, 1)) * 100) : 0}%
+          </div>
           <div className="text-sm text-gray-400">掌握率</div>
         </div>
       </div>
@@ -92,18 +94,11 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold mb-4">今日进度</h3>
           <div className="relative w-48 h-48">
             <svg className="transform -rotate-90 w-48 h-48">
+              <circle cx="96" cy="96" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="12" />
               <circle
-                cx="96" cy="96" r={radius}
-                fill="none"
-                stroke="#e5e7eb"
-                strokeWidth="12"
-              />
-              <circle
-                cx="96" cy="96" r={radius}
-                fill="none"
+                cx="96" cy="96" r={radius} fill="none"
                 stroke={percent >= 100 ? '#22c55e' : '#3b82f6'}
-                strokeWidth="12"
-                strokeLinecap="round"
+                strokeWidth="12" strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={offset}
                 className="transition-all duration-700 ease-out"
@@ -116,30 +111,31 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Words */}
+        {/* Recent Functions */}
         <div className="card">
           <h3 className="text-lg font-semibold mb-3">最近添加</h3>
-          {recentWords.length === 0 ? (
-            <p className="text-gray-400 text-sm">还没有单词，快去添加吧</p>
+          {recentFuncs.length === 0 ? (
+            <p className="text-gray-400 text-sm">还没有函数，快去添加吧</p>
           ) : (
             <div className="space-y-2">
-              {recentWords.map(w => (
-                <div key={w.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+              {recentFuncs.map(f => (
+                <div key={f.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <div>
-                    <span className="font-medium text-gray-800">{w.word}</span>
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono mr-1">{f.library}</span>
+                    <span className="font-medium text-gray-800">{f.name}</span>
                     <span className="text-gray-400 mx-2">—</span>
-                    <span className="text-gray-500 text-sm">{w.meaning}</span>
+                    <span className="text-gray-500 text-sm">{f.description}</span>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    w.status === 'new' ? 'bg-blue-100 text-blue-600' :
-                    w.status === 'learning' ? 'bg-yellow-100 text-yellow-600' :
+                    f.status === 'new' ? 'bg-blue-100 text-blue-600' :
+                    f.status === 'learning' ? 'bg-yellow-100 text-yellow-600' :
                     'bg-green-100 text-green-600'
                   }`}>
-                    {w.status === 'new' ? '新词' : w.status === 'learning' ? '学习中' : '已掌握'}
+                    {f.status === 'new' ? '未学' : f.status === 'learning' ? '学习中' : '已掌握'}
                   </span>
                 </div>
               ))}
-              <Link to="/words" className="block text-center text-sm text-primary-500 hover:text-primary-600 mt-2">
+              <Link to="/functions" className="block text-center text-sm text-primary-500 hover:text-primary-600 mt-2">
                 查看全部 →
               </Link>
             </div>

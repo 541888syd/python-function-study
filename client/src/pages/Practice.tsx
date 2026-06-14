@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { practiceApi } from '../api';
-import type { PracticeWord } from '../types';
+import type { PracticeFunction } from '../types';
 
 interface PracticeResult {
-  word: PracticeWord;
+  func: PracticeFunction;
   userInput: string;
   correct: boolean;
   correctAnswer: string;
@@ -12,9 +12,17 @@ interface PracticeResult {
   skipped: boolean;
 }
 
+const MODE_LABELS: Record<string, { label: string; icon: string; tip: string }> = {
+  name2library: { label: '函数→库', icon: '🆔', tip: '看到函数名，回想它属于哪个库' },
+  name2usage: { label: '函数→描述', icon: '📝', tip: '看到函数名，描述它的功能和用途' },
+  usage2name: { label: '描述→函数', icon: '🔍', tip: '看到功能描述，写出对应的函数名' },
+  code2name: { label: '代码→函数', icon: '💻', tip: '看到代码片段，识别核心函数' },
+  signature2name: { label: '签名→函数', icon: '🔤', tip: '看到函数签名和参数，写出函数名' },
+};
+
 export default function Practice() {
   const navigate = useNavigate();
-  const [words, setWords] = useState<PracticeWord[]>([]);
+  const [funcs, setFuncs] = useState<PracticeFunction[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
@@ -29,11 +37,11 @@ export default function Practice() {
   useEffect(() => {
     practiceApi.start()
       .then(res => {
-        setWords(res.words);
+        setFuncs(res.functions);
         setStartTime(Date.now());
-        if (res.words.length === 0) {
-          alert('暂无可练习的单词，请先去单词本添加单词！');
-          navigate('/words');
+        if (res.functions.length === 0) {
+          alert('暂无可练习的函数，请先去函数库添加函数！');
+          navigate('/functions');
         }
       })
       .catch(err => {
@@ -44,61 +52,43 @@ export default function Practice() {
   }, [navigate]);
 
   useEffect(() => {
-    if (inputRef.current && !feedback) {
-      inputRef.current.focus();
-    }
+    if (inputRef.current && !feedback) inputRef.current.focus();
   }, [currentIndex, feedback]);
 
-  const currentWord = words[currentIndex];
+  const currentFunc = funcs[currentIndex];
 
   const handleSubmit = useCallback(async (skip: boolean = false) => {
-    if (!currentWord || feedback) return;
-
+    if (!currentFunc || feedback) return;
     const timeSpent = (Date.now() - startTime) / 1000;
     const input = skip ? '' : userInput;
-
     try {
       const res = await practiceApi.submit({
-        wordId: currentWord.id,
+        functionId: currentFunc.id,
         userInput: input,
-        mode: currentWord.mode,
+        mode: currentFunc.mode,
         timeSpent,
         skip,
       });
-
       setCorrectAnswer(res.correctAnswer);
       setResults(prev => [...prev, {
-        word: currentWord,
-        userInput: input,
-        correct: res.correct,
-        correctAnswer: res.correctAnswer,
-        timeSpent,
-        skipped: skip,
+        func: currentFunc, userInput: input,
+        correct: res.correct, correctAnswer: res.correctAnswer,
+        timeSpent, skipped: skip,
       }]);
-
       if (res.correct) {
         setFeedback('correct');
-        // Auto-advance after 0.5s for correct answers
-        setTimeout(() => {
-          goNext();
-        }, 500);
+        setTimeout(() => goNext(), 800);
       } else {
         setFeedback('wrong');
         setWaitingConfirm(true);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  }, [currentWord, userInput, startTime, feedback]);
+    } catch (err) { console.error(err); }
+  }, [currentFunc, userInput, startTime, feedback]);
 
   const goNext = () => {
-    if (currentIndex + 1 >= words.length) {
-      // Session complete - navigate to result page with data
+    if (currentIndex + 1 >= funcs.length) {
       navigate('/practice/result', {
-        state: {
-          results: [...results],
-          totalTime: (Date.now() - sessionStart) / 1000,
-        },
+        state: { results: [...results], totalTime: (Date.now() - sessionStart) / 1000 },
       });
     } else {
       setCurrentIndex(i => i + 1);
@@ -112,26 +102,17 @@ export default function Practice() {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      if (waitingConfirm) {
-        goNext();
-      } else {
-        handleSubmit(false);
-      }
+      if (waitingConfirm) goNext();
+      else handleSubmit(false);
     }
-    if (e.key === 'Escape') {
-      handleSubmit(true); // Skip
-    }
+    if (e.key === 'Escape') handleSubmit(true);
   };
 
-  if (loading) {
-    return <div className="text-center py-12 text-gray-400">准备练习题中...</div>;
-  }
+  if (loading) return <div className="text-center py-12 text-gray-400">准备练习中...</div>;
+  if (!currentFunc) return <div className="text-center py-12 text-gray-400">没有更多题目了</div>;
 
-  if (!currentWord) {
-    return <div className="text-center py-12 text-gray-400">没有更多题目了</div>;
-  }
-
-  const progress = ((currentIndex + (feedback ? 1 : 0)) / words.length) * 100;
+  const progress = ((currentIndex + (feedback ? 1 : 0)) / funcs.length) * 100;
+  const modeInfo = MODE_LABELS[currentFunc.mode] || MODE_LABELS.name2usage;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -139,15 +120,11 @@ export default function Practice() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-xl font-bold">✍️ 练习中</h1>
-          <span className="text-sm text-gray-400">
-            {currentIndex + 1} / {words.length}
-          </span>
+          <span className="text-sm text-gray-400">{currentIndex + 1} / {funcs.length}</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-primary-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+          <div className="bg-primary-500 h-2 rounded-full transition-all duration-300"
+               style={{ width: `${progress}%` }} />
         </div>
       </div>
 
@@ -158,63 +135,126 @@ export default function Practice() {
       }`}>
         {/* Mode indicator */}
         <div className="text-center mb-4">
-          <span className={`text-xs px-3 py-1 rounded-full ${
-            currentWord.mode === 'cn2en'
-              ? 'bg-blue-100 text-blue-600'
-              : 'bg-purple-100 text-purple-600'
-          }`}>
-            {currentWord.mode === 'cn2en' ? '中 → 英' : '英 → 中'}
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-600">
+            {modeInfo.icon} {modeInfo.label}
           </span>
+          <p className="text-xs text-gray-400 mt-1">{modeInfo.tip}</p>
         </div>
 
-        {/* Prompt */}
+        {/* Prompt area — varies by mode */}
         <div className="text-center mb-6">
-          <p className="text-3xl font-bold text-gray-800">{currentWord.prompt}</p>
-          {currentWord.phonetic && currentWord.mode === 'en2cn' && (
-            <p className="text-gray-400 mt-1">{currentWord.phonetic}</p>
+          {currentFunc.mode === 'code2name' && currentFunc.codeExample ? (
+            <pre className="code-block text-left inline-block min-w-[300px] max-w-full mx-auto mb-2">
+              {currentFunc.codeExample}
+            </pre>
+          ) : currentFunc.mode === 'signature2name' ? (
+            <div>
+              <p className="text-xl font-mono text-gray-800 font-bold mb-2">{currentFunc.prompt}</p>
+              {currentFunc.parameters && currentFunc.parameters.length > 0 && (
+                <div className="inline-block text-left text-sm">
+                  <table className="mx-auto">
+                    <thead>
+                      <tr className="text-gray-400">
+                        <th className="px-2">参数</th><th className="px-2">类型</th><th className="px-2">说明</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentFunc.parameters.map(p => (
+                        <tr key={p.name} className="text-gray-600">
+                          <td className="px-2 font-mono">{p.name}</td>
+                          <td className="px-2 text-xs">{p.type || '-'}</td>
+                          <td className="px-2 text-xs">{p.description || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {currentFunc.returnType && (
+                <p className="text-xs text-gray-400 mt-1">返回类型: <span className="font-mono">{currentFunc.returnType}</span></p>
+              )}
+            </div>
+          ) : currentFunc.mode === 'name2library' ? (
+            <div>
+              <p className="text-3xl font-bold text-gray-800 font-mono">{currentFunc.prompt}</p>
+              <p className="text-sm text-gray-400 mt-1">这个函数属于哪个库？</p>
+            </div>
+          ) : currentFunc.mode === 'name2usage' ? (
+            <div>
+              <p className="text-3xl font-bold text-gray-800 font-mono">{currentFunc.prompt}</p>
+              <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-500 mt-1 inline-block">
+                {currentFunc.library}
+              </span>
+            </div>
+          ) : (
+            <p className="text-2xl font-bold text-gray-800">{currentFunc.prompt}</p>
           )}
         </div>
 
         {/* Input */}
         <div className="relative">
-          <input
-            ref={inputRef}
-            type="text"
-            value={userInput}
-            onChange={e => setUserInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={!!feedback}
-            placeholder={currentWord.mode === 'cn2en' ? '输入英文单词...' : '输入中文释义...'}
-            className={`input-field text-center text-xl py-4 ${
-              feedback === 'correct' ? 'border-green-400 bg-green-50' :
-              feedback === 'wrong' ? 'border-red-400 bg-red-50' : ''
-            }`}
-            autoComplete="off"
-            autoCapitalize="off"
-          />
+          {currentFunc.mode === 'name2usage' ? (
+            <textarea
+              ref={inputRef as any}
+              value={userInput}
+              onChange={e => setUserInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(false);
+                }
+                if (e.key === 'Escape') handleSubmit(true);
+              }}
+              disabled={!!feedback}
+              placeholder="用中文描述这个函数的功能..."
+              className={`input-field text-center py-4 min-h-[80px] ${
+                feedback === 'correct' ? 'border-green-400 bg-green-50' :
+                feedback === 'wrong' ? 'border-red-400 bg-red-50' : ''
+              }`}
+            />
+          ) : (
+            <input
+              ref={inputRef}
+              type="text"
+              value={userInput}
+              onChange={e => setUserInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={!!feedback}
+              placeholder={
+                currentFunc.mode === 'name2library' ? '输入库名...' :
+                currentFunc.mode === 'code2name' ? '输入函数名...' :
+                '输入函数名...'
+              }
+              className={`input-field text-center text-xl py-4 ${
+                feedback === 'correct' ? 'border-green-400 bg-green-50' :
+                feedback === 'wrong' ? 'border-red-400 bg-red-50' : ''
+              }`}
+              autoComplete="off"
+            />
+          )}
 
           {/* Feedback overlay */}
           {feedback && (
             <div className={`text-center mt-4 py-3 rounded-lg ${
-              feedback === 'correct' ? 'bg-green-100 text-green-700' :
-              'bg-red-100 text-red-700'
+              feedback === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
             }`}>
               <div className="text-2xl font-bold mb-1">
                 {feedback === 'correct' ? '✅ 正确！' : '❌ 错误'}
               </div>
-              {currentWord.mode === 'cn2en' && (
+              {feedback === 'wrong' && (
                 <div className="text-lg">
-                  <span className="text-gray-500">{currentWord.meaning}</span>
-                  {' = '}
-                  <span className="font-bold">{correctAnswer}</span>
-                  {currentWord.phonetic && <span className="text-sm text-gray-400 ml-1">{currentWord.phonetic}</span>}
-                </div>
-              )}
-              {currentWord.mode === 'en2cn' && (
-                <div className="text-lg">
-                  <span className="font-bold">{currentWord.word}</span>
-                  {' = '}
-                  <span className="text-gray-500">{correctAnswer}</span>
+                  <div className="text-red-500 line-through mb-1">{userInput || '(空)'}</div>
+                  <div className="font-bold text-green-700 font-mono">{correctAnswer}</div>
+                  <div className="text-sm mt-2 text-gray-500">
+                    <span className="font-mono">{currentFunc.library}.{correctAnswer}</span>
+                    <span className="mx-2">—</span>
+                    {currentFunc.description}
+                  </div>
+                  {currentFunc.codeExample && (
+                    <pre className="code-block text-left text-xs mt-2 mx-auto max-w-sm">
+                      {currentFunc.codeExample}
+                    </pre>
+                  )}
                 </div>
               )}
               {waitingConfirm && (
@@ -229,26 +269,20 @@ export default function Practice() {
 
       {/* Action buttons */}
       <div className="flex gap-3 justify-center">
-        <button
-          onClick={() => handleSubmit(false)}
-          disabled={!!feedback || !userInput.trim()}
-          className="btn-primary text-lg px-8 py-3"
-        >
+        <button onClick={() => handleSubmit(false)}
+          disabled={!!feedback || !userInput.trim()} className="btn-primary text-lg px-8 py-3">
           确认 (Enter)
         </button>
-        <button
-          onClick={() => handleSubmit(true)}
-          disabled={!!feedback}
-          className="btn-secondary text-lg px-8 py-3"
-        >
+        <button onClick={() => handleSubmit(true)}
+          disabled={!!feedback} className="btn-secondary text-lg px-8 py-3">
           跳过 (Esc)
         </button>
       </div>
 
-      {/* Word status indicator */}
-      {currentWord.status !== 'new' && (
+      {/* Status indicator */}
+      {currentFunc.status !== 'new' && (
         <div className="text-center mt-3 text-xs text-gray-400">
-          复习单词 · 掌握度 {Math.round(currentWord.mastery * 100)}%
+          复习 · 掌握度 {Math.round(currentFunc.mastery * 100)}%
         </div>
       )}
     </div>

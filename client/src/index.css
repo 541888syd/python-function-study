@@ -32,4 +32,10 @@
   .card {
     @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
   }
+  .code-block {
+    @apply bg-gray-900 text-green-400 font-mono text-sm p-4 rounded-lg overflow-x-auto;
+  }
+  .library-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  }
 }

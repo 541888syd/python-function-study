@@ -1,29 +1,45 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { wordsApi } from '../api';
+import { functionsApi } from '../api';
 
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const [word, setWord] = useState('');
-  const [meaning, setMeaning] = useState('');
+  const [funcName, setFuncName] = useState('');
+  const [library, setLibrary] = useState('');
+  const [description, setDescription] = useState('');
   const [adding, setAdding] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (showQuickAdd && inputRef.current) {
-      inputRef.current.focus();
+    if (showQuickAdd && nameRef.current) {
+      nameRef.current.focus();
     }
   }, [showQuickAdd]);
 
+  // Auto-detect library from function name like "os.path.join" -> library="os.path"
+  const handleNameChange = (val: string) => {
+    setFuncName(val);
+    // If name contains dots, extract library from first segments
+    const parts = val.split('.');
+    if (parts.length >= 2) {
+      setLibrary(parts.slice(0, -1).join('.'));
+    }
+  };
+
   const handleQuickAdd = async () => {
-    if (!word.trim() || !meaning.trim()) return;
+    if (!funcName.trim() || !library.trim() || !description.trim()) return;
     setAdding(true);
     try {
-      await wordsApi.add({ word: word.trim(), meaning: meaning.trim() });
-      setWord('');
-      setMeaning('');
+      await functionsApi.add({
+        name: funcName.trim(),
+        library: library.trim(),
+        description: description.trim(),
+      });
+      setFuncName('');
+      setLibrary('');
+      setDescription('');
       setShowQuickAdd(false);
     } catch (err: any) {
       alert(err.message);
@@ -33,7 +49,7 @@ export default function Navbar() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && word.trim() && meaning.trim()) {
+    if (e.key === 'Enter' && funcName.trim() && library.trim() && description.trim()) {
       handleQuickAdd();
     }
     if (e.key === 'Escape') {
@@ -43,7 +59,7 @@ export default function Navbar() {
 
   const links = [
     { to: '/', label: '仪表盘', icon: '📊' },
-    { to: '/words', label: '单词本', icon: '📖' },
+    { to: '/functions', label: '函数库', icon: '📦' },
     { to: '/practice', label: '练习', icon: '✍️' },
     { to: '/stats', label: '统计', icon: '📈' },
     { to: '/settings', label: '设置', icon: '⚙️' },
@@ -54,7 +70,7 @@ export default function Navbar() {
       <div className="max-w-5xl mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           <Link to="/" className="flex items-center gap-2 font-bold text-lg text-primary-700 shrink-0">
-            📚 英语学习
+            🐍 Python函数学习
           </Link>
 
           <div className="flex items-center gap-1">
@@ -83,27 +99,35 @@ export default function Navbar() {
 
         {/* Quick Add Panel */}
         {showQuickAdd && (
-          <div className="py-3 border-t border-gray-100 flex items-center gap-3">
+          <div className="py-3 border-t border-gray-100 flex items-center gap-3 flex-wrap">
             <input
-              ref={inputRef}
+              ref={nameRef}
               type="text"
-              placeholder="英文单词"
-              value={word}
-              onChange={e => setWord(e.target.value)}
+              placeholder="函数名 (如 os.path.join)"
+              value={funcName}
+              onChange={e => handleNameChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="input-field flex-1"
+              className="input-field flex-1 min-w-[160px]"
             />
             <input
               type="text"
-              placeholder="中文释义"
-              value={meaning}
-              onChange={e => setMeaning(e.target.value)}
+              placeholder="所属库 (如 os)"
+              value={library}
+              onChange={e => setLibrary(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="input-field flex-1"
+              className="input-field w-32"
+            />
+            <input
+              type="text"
+              placeholder="功能描述"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="input-field flex-1 min-w-[200px]"
             />
             <button
               onClick={handleQuickAdd}
-              disabled={adding || !word.trim() || !meaning.trim()}
+              disabled={adding || !funcName.trim() || !library.trim() || !description.trim()}
               className="btn-primary shrink-0"
             >
               {adding ? '添加中...' : '添加'}

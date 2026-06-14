@@ -1,7 +1,15 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import Navbar from './Navbar';
 
 export default function Layout({ children }: { children: ReactNode }) {
+  // Send heartbeat to server — when browser closes, server auto-shuts down
+  useEffect(() => {
+    const timer = setInterval(() => {
+      fetch('/api/heartbeat').catch(() => {});
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

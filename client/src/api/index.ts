@@ -1,4 +1,4 @@
-import type { Word, PracticeWord, Settings, OverviewStats, DailyStat, TodayProgress } from '../types';
+import type { PythonFunction, PracticeFunction, Settings, OverviewStats, DailyStat, TodayProgress, LibraryDistItem } from '../types';
 
 const BASE = '/api';
 
@@ -14,31 +14,49 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-// Words API
-export const wordsApi = {
-  list: (params?: { search?: string; tag?: string; status?: string }) => {
+// Functions API
+export const functionsApi = {
+  list: (params?: { search?: string; library?: string; status?: string; categoryTag?: string; difficulty?: string }) => {
     const qs = new URLSearchParams();
     if (params?.search) qs.set('search', params.search);
-    if (params?.tag) qs.set('tag', params.tag);
+    if (params?.library) qs.set('library', params.library);
     if (params?.status) qs.set('status', params.status);
+    if (params?.categoryTag) qs.set('categoryTag', params.categoryTag);
+    if (params?.difficulty) qs.set('difficulty', params.difficulty);
     const q = qs.toString();
-    return request<{ words: Word[] }>(`/words${q ? '?' + q : ''}`);
+    return request<{ functions: PythonFunction[] }>(`/functions${q ? '?' + q : ''}`);
   },
 
-  add: (data: { word: string; meaning: string; phonetic?: string; tags?: string[]; source?: string }) =>
-    request<Word>('/words', { method: 'POST', body: JSON.stringify(data) }),
+  getById: (id: string) =>
+    request<PythonFunction>(`/functions/${id}`),
 
-  batchAdd: (inputs: Array<{ word: string; meaning: string; tags?: string[] }>) =>
-    request<{ added: Word[]; skipped: string[] }>('/words/batch', { method: 'POST', body: JSON.stringify({ inputs }) }),
+  add: (data: {
+    name: string; library: string; description: string;
+    signature?: string; parameters?: PythonFunction['parameters'];
+    returnType?: string; codeExamples?: PythonFunction['codeExamples'];
+    etymology?: string; relatedFunctions?: string[];
+    categoryTags?: string[]; difficulty?: string;
+    source?: string; notes?: string;
+  }) =>
+    request<PythonFunction>('/functions', { method: 'POST', body: JSON.stringify(data) }),
 
-  update: (id: string, data: Partial<Word>) =>
-    request<Word>(`/words/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  batchAdd: (inputs: Array<{ name: string; library: string; description: string; categoryTags?: string[] }>) =>
+    request<{ added: PythonFunction[]; skipped: string[] }>('/functions/batch', { method: 'POST', body: JSON.stringify({ inputs }) }),
+
+  update: (id: string, data: Partial<PythonFunction>) =>
+    request<PythonFunction>(`/functions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   delete: (id: string) =>
-    request<{ success: boolean }>(`/words/${id}`, { method: 'DELETE' }),
+    request<{ success: boolean }>(`/functions/${id}`, { method: 'DELETE' }),
 
-  tags: () =>
-    request<{ tags: string[] }>('/words/tags'),
+  libraries: () =>
+    request<{ libraries: string[] }>('/functions/libraries'),
+
+  categories: () =>
+    request<{ categoryTags: string[] }>('/functions/categories'),
+
+  distribution: () =>
+    request<{ distribution: LibraryDistItem[] }>('/functions/distribution'),
 };
 
 // Practice API
@@ -47,9 +65,9 @@ export const practiceApi = {
     request<TodayProgress>('/practice/today'),
 
   start: () =>
-    request<{ words: PracticeWord[] }>('/practice/start', { method: 'POST' }),
+    request<{ functions: PracticeFunction[] }>('/practice/start', { method: 'POST' }),
 
-  submit: (data: { wordId: string; userInput: string; mode: string; timeSpent: number; skip?: boolean }) =>
+  submit: (data: { functionId: string; userInput: string; mode: string; timeSpent: number; skip?: boolean }) =>
     request<{ correct: boolean; correctAnswer: string }>('/practice/submit', { method: 'POST', body: JSON.stringify(data) }),
 };
 
@@ -60,6 +78,9 @@ export const statsApi = {
 
   trend: (days: number = 30) =>
     request<{ trend: DailyStat[] }>(`/stats/trend?days=${days}`),
+
+  distribution: () =>
+    request<{ distribution: LibraryDistItem[] }>('/stats/distribution'),
 };
 
 // Settings API
@@ -78,4 +99,7 @@ export const dataApi = {
 
   import: (data: any) =>
     request<{ success: boolean }>('/data/import', { method: 'POST', body: JSON.stringify(data) }),
+
+  seed: () =>
+    request<{ seeded: boolean; count?: number; message?: string }>('/data/seed', { method: 'POST' }),
 };

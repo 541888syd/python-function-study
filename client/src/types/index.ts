@@ -1,10 +1,34 @@
-export interface Word {
+// --- Python Function ---
+export interface FunctionParameter {
+  name: string;
+  type?: string;
+  description?: string;
+  defaultValue?: string;
+}
+
+export interface CodeExample {
+  code: string;
+  description?: string;
+  output?: string;
+}
+
+export type PracticeMode = 'name2usage' | 'usage2name' | 'code2name' | 'signature2name' | 'name2library';
+
+export interface PythonFunction {
   id: string;
-  word: string;
-  meaning: string;
-  phonetic?: string;
-  tags: string[];
+  name: string;
+  library: string;
+  description: string;
+  signature?: string;
+  parameters?: FunctionParameter[];
+  returnType?: string;
+  codeExamples: CodeExample[];
+  etymology?: string;
+  relatedFunctions?: string[];
+  categoryTags?: string[];
+  difficulty?: 'basic' | 'intermediate' | 'advanced';
   source?: string;
+  notes?: string;
   createdAt: string;
   reviewCount: number;
   correctCount: number;
@@ -13,38 +37,45 @@ export interface Word {
   status: 'new' | 'learning' | 'mastered';
 }
 
+// --- Practice ---
 export interface PracticeRecord {
   id: string;
   date: string;
-  wordId: string;
-  mode: 'cn2en' | 'en2cn';
+  functionId: string;
+  mode: PracticeMode;
   userInput: string;
   result: 'correct' | 'wrong' | 'skip';
   timeSpent: number;
 }
 
-export interface PracticeWord {
+export interface PracticeFunction {
   id: string;
-  word: string;
-  meaning: string;
-  phonetic?: string;
-  mode: 'cn2en' | 'en2cn';
+  name: string;
+  library: string;
+  description: string;
+  signature?: string;
+  codeExample?: string;
+  parameters?: FunctionParameter[];
+  returnType?: string;
+  mode: PracticeMode;
   prompt: string;
   mastery: number;
   status: string;
 }
 
+// --- Settings ---
 export interface Settings {
   dailyGoal: number;
   newWordsPerDay: number;
-  practiceMode: 'cn2en' | 'en2cn' | 'mixed';
+  practiceMode: PracticeMode | 'mixed';
 }
 
+// --- Stats ---
 export interface OverviewStats {
-  totalWords: number;
-  newWords: number;
-  learningWords: number;
-  masteredWords: number;
+  totalFunctions: number;
+  newFunctions: number;
+  learningFunctions: number;
+  masteredFunctions: number;
   todayCompleted: number;
   todayCorrect: number;
   streak: number;
@@ -60,5 +91,10 @@ export interface DailyStat {
 export interface TodayProgress {
   completed: number;
   goal: number;
-  newWordsLearned: number;
+  newFunctionsLearned: number;
+}
+
+export interface LibraryDistItem {
+  library: string;
+  count: number;
 }
