@@ -1,0 +1,12 @@
+{
+  "name": "python-function-study",
+  "bin": "dist/server.cjs",
+  "pkg": {
+    "assets": [
+      "public/**/*",
+      "data/**/*"
+    ],
+    "targets": ["node18-win-x64"],
+    "outputPath": "../release"
+  }
+}

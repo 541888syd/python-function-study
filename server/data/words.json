@@ -6,10 +6,10 @@
       "meaning": "存在量词（exist 的复数）",
       "tags": [],
       "createdAt": "2026-06-11T13:02:41.218Z",
-      "reviewCount": 2,
+      "reviewCount": 3,
       "correctCount": 1,
-      "lastReviewedAt": "2026-06-11T13:03:15.481Z",
-      "mastery": 0.5,
+      "lastReviewedAt": "2026-06-13T01:35:55.220Z",
+      "mastery": 0.3333333333333333,
       "status": "learning"
     },
     {
@@ -66,11 +66,11 @@
       "meaning": "转存，丢弃，抛弃",
       "tags": [],
       "createdAt": "2026-06-11T13:12:32.777Z",
-      "reviewCount": 0,
-      "correctCount": 0,
-      "lastReviewedAt": null,
-      "mastery": 0,
-      "status": "new"
+      "reviewCount": 1,
+      "correctCount": 1,
+      "lastReviewedAt": "2026-06-13T01:36:24.608Z",
+      "mastery": 1,
+      "status": "mastered"
     },
     {
       "id": "94e4bc89-a851-471a-bac1-4cdff0386237",

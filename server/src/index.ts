@@ -120,25 +120,8 @@ function startServer(port: number) {
   const server = app.listen(port, () => {
     console.log(`🐍 Python Function Study Server running at http://localhost:${port}`);
 
-    // Auto-seed on first start
-    try {
-      const current = readJson<any>('functions.json');
-      if (!current.functions || current.functions.length === 0) {
-        const seed = readJson<any>('seed_functions.json');
-        if (seed.functions && seed.functions.length > 0) {
-          // Generate IDs for seed functions that lack them
-          const { v4: uuidv4 } = require('uuid');
-          seed.functions = seed.functions.map((f: any) => ({
-            ...f,
-            id: f.id || uuidv4(),
-            codeExamples: f.codeExamples || [],
-            categoryTags: f.categoryTags || [],
-          }));
-          writeJson('functions.json', seed);
-          console.log(`🌱 Loaded ${seed.functions.length} seed functions`);
-        }
-      }
-    } catch (_) { /* ignore seed errors on startup */ }
+    // Auto-seed disabled — user manages their own functions
+    // try { ... } catch (_) {}
 
     // Auto-open browser in production or packaged mode
     if (isPackaged || process.env.NODE_ENV === 'production') {

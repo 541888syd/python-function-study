@@ -191,27 +191,40 @@ export default function Practice() {
             />
           )}
 
-          {/* Feedback */}
+          {/* Feedback — always show full function info for learning */}
           {feedback && (
-            <div className={`text-center mt-4 py-3 rounded-lg ${
-              feedback === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            <div className={`text-center mt-4 p-4 rounded-lg ${
+              feedback === 'correct' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
             }`}>
-              <div className="text-2xl font-bold mb-1">
+              <div className="text-xl font-bold mb-2">
                 {feedback === 'correct' ? '✅ 正确！' : '❌ 错误'}
               </div>
+
               {feedback === 'wrong' && (
-                <div className="text-lg">
-                  <div className="text-red-500 line-through mb-1">{userInput || '(空)'}</div>
-                  <div className="font-bold text-green-700 font-mono">{correctAnswer}</div>
-                  <div className="text-sm mt-2 text-gray-500">
-                    {isDescribe ? (
-                      <span>以上为参考答案，意思差不多就算对</span>
-                    ) : (
-                      <>{currentFunc.library}.{correctAnswer} — {currentFunc.description}</>
-                    )}
-                  </div>
-                </div>
+                <div className="text-red-500 line-through text-sm mb-1">{userInput || '(空)'}</div>
               )}
+
+              {/* Function detail card */}
+              <div className="inline-block text-left bg-white rounded-lg p-3 shadow-sm border border-gray-100 max-w-full">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono">
+                    {isDescribe ? currentFunc.library : (currentFunc.library)}
+                  </span>
+                  <span className="font-bold font-mono text-gray-800">
+                    {isDescribe ? currentFunc.name : correctAnswer}
+                  </span>
+                </div>
+                {currentFunc.signature && (
+                  <p className="text-xs text-gray-400 font-mono mb-1">{currentFunc.signature}</p>
+                )}
+                <p className="text-sm text-gray-600">
+                  {isDescribe ? correctAnswer : currentFunc.description}
+                </p>
+                {currentFunc.codeExample && (
+                  <pre className="code-block mt-2 text-xs">{currentFunc.codeExample}</pre>
+                )}
+              </div>
+
               {waitingConfirm && (
                 <button onClick={goNext} className="btn-primary mt-3" autoFocus>
                   继续下一题 (Enter)
