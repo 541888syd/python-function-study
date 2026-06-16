@@ -69,12 +69,9 @@ export default function Settings() {
   if (loading) return <div className="text-center py-12 text-gray-400">加载中...</div>;
 
   const modeOptions = [
-    { value: 'mixed', label: '🔀 混合随机', desc: '随机切换5种模式' },
+    { value: 'mixed', label: '🔀 混合随机', desc: '两种模式随机出题' },
     { value: 'name2usage', label: '📝 函数→描述', desc: '看到函数名，描述用途' },
     { value: 'usage2name', label: '🔍 描述→函数', desc: '看到描述，回忆函数名' },
-    { value: 'code2name', label: '💻 代码→函数', desc: '看到代码，识别函数' },
-    { value: 'signature2name', label: '🔤 签名→函数', desc: '看到签名，命名函数' },
-    { value: 'name2library', label: '🆔 函数→库', desc: '看到函数，回想所属库' },
   ];
 
   return (

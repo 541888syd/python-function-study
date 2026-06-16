@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { readJson, writeJson } from './storageService.js';
 import { getAllFunctions, updateFunction, type PythonFunction } from './functionService.js';
 
-export type PracticeMode = 'name2usage' | 'usage2name' | 'code2name' | 'signature2name' | 'name2library';
+export type PracticeMode = 'name2usage' | 'usage2name';
 
 interface PracticeRecord {
   id: string;
@@ -133,19 +133,14 @@ export function pickPracticeFunctions(): PracticeFunction[] {
 function generatePrompt(pf: PracticeFunction): string {
   switch (pf.mode) {
     case 'name2usage':
-    case 'name2library':
       return pf.name;
     case 'usage2name':
       return pf.description;
-    case 'code2name':
-      return pf.codeExample || `# ${pf.name} 代码示例`;
-    case 'signature2name':
-      return pf.signature || `${pf.library}.${pf.name}(...)`;
   }
 }
 
 function getRandomPracticeMode(setting: string): PracticeMode {
-  const allModes: PracticeMode[] = ['name2usage', 'usage2name', 'code2name', 'signature2name', 'name2library'];
+  const allModes: PracticeMode[] = ['name2usage', 'usage2name'];
   if (setting === 'mixed') {
     return allModes[Math.floor(Math.random() * allModes.length)];
   }
@@ -246,22 +241,13 @@ export function submitAnswer(
     result = 'skip';
   } else {
     switch (mode) {
-      case 'name2library': {
-        // Strict match on library name + aliases
-        const aliases = getLibraryAliases(func.library);
-        result = aliases.some(a => a.toLowerCase() === trimmedInput)
-          ? 'correct' : 'wrong';
-        break;
-      }
       case 'name2usage': {
-        // Chinese keyword Jaccard similarity >= 0.6
+        // Chinese keyword Jaccard similarity >= 0.4 (lenient)
         const similarity = jaccardSimilarity(trimmedInput, func.description);
-        result = similarity >= 0.6 ? 'correct' : 'wrong';
+        result = similarity >= 0.4 ? 'correct' : 'wrong';
         break;
       }
-      case 'usage2name':
-      case 'code2name':
-      case 'signature2name': {
+      case 'usage2name': {
         // Name matching with fuzzy tolerance
         result = matchFunctionName(trimmedInput, func.name, func.library)
           ? 'correct' : 'wrong';
@@ -275,15 +261,10 @@ export function submitAnswer(
   // Determine correct answer string based on mode
   let correctAnswer: string;
   switch (mode) {
-    case 'name2library':
-      correctAnswer = func.library;
-      break;
     case 'name2usage':
       correctAnswer = func.description;
       break;
     case 'usage2name':
-    case 'code2name':
-    case 'signature2name':
       correctAnswer = func.name;
       break;
     default:

@@ -12,12 +12,9 @@ interface PracticeResult {
   skipped: boolean;
 }
 
-const MODE_LABELS: Record<string, { label: string; icon: string; tip: string }> = {
-  name2library: { label: '函数→库', icon: '🆔', tip: '看到函数名，回想它属于哪个库' },
-  name2usage: { label: '函数→描述', icon: '📝', tip: '看到函数名，描述它的功能和用途' },
-  usage2name: { label: '描述→函数', icon: '🔍', tip: '看到功能描述，写出对应的函数名' },
-  code2name: { label: '代码→函数', icon: '💻', tip: '看到代码片段，识别核心函数' },
-  signature2name: { label: '签名→函数', icon: '🔤', tip: '看到函数签名和参数，写出函数名' },
+const MODE_LABELS: Record<string, { label: string; icon: string }> = {
+  name2usage: { label: '函数→描述', icon: '📝' },
+  usage2name: { label: '描述→函数', icon: '🔍' },
 };
 
 export default function Practice() {
@@ -32,6 +29,7 @@ export default function Practice() {
   const [startTime, setStartTime] = useState(Date.now());
   const [sessionStart] = useState(Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [waitingConfirm, setWaitingConfirm] = useState(false);
 
   useEffect(() => {
@@ -52,7 +50,8 @@ export default function Practice() {
   }, [navigate]);
 
   useEffect(() => {
-    if (inputRef.current && !feedback) inputRef.current.focus();
+    const el = currentFunc?.mode === 'name2usage' ? textareaRef.current : inputRef.current;
+    if (el && !feedback) el.focus();
   }, [currentIndex, feedback]);
 
   const currentFunc = funcs[currentIndex];
@@ -77,7 +76,7 @@ export default function Practice() {
       }]);
       if (res.correct) {
         setFeedback('correct');
-        setTimeout(() => goNext(), 800);
+        setTimeout(() => goNext(), 600);
       } else {
         setFeedback('wrong');
         setWaitingConfirm(true);
@@ -102,8 +101,13 @@ export default function Practice() {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      if (waitingConfirm) goNext();
-      else handleSubmit(false);
+      if (waitingConfirm) { goNext(); return; }
+      // For textarea, Shift+Enter to submit; for input, Enter to submit
+      if (currentFunc?.mode === 'name2usage' && e.shiftKey) return;
+      if (currentFunc?.mode !== 'name2usage' || e.shiftKey || !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit(false);
+      }
     }
     if (e.key === 'Escape') handleSubmit(true);
   };
@@ -112,7 +116,8 @@ export default function Practice() {
   if (!currentFunc) return <div className="text-center py-12 text-gray-400">没有更多题目了</div>;
 
   const progress = ((currentIndex + (feedback ? 1 : 0)) / funcs.length) * 100;
-  const modeInfo = MODE_LABELS[currentFunc.mode] || MODE_LABELS.name2usage;
+  const modeInfo = MODE_LABELS[currentFunc.mode];
+  const isDescribe = currentFunc.mode === 'name2usage';
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -138,50 +143,13 @@ export default function Practice() {
           <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-600">
             {modeInfo.icon} {modeInfo.label}
           </span>
-          <p className="text-xs text-gray-400 mt-1">{modeInfo.tip}</p>
         </div>
 
-        {/* Prompt area — varies by mode */}
+        {/* Prompt */}
         <div className="text-center mb-6">
-          {currentFunc.mode === 'code2name' && currentFunc.codeExample ? (
-            <pre className="code-block text-left inline-block min-w-[300px] max-w-full mx-auto mb-2">
-              {currentFunc.codeExample}
-            </pre>
-          ) : currentFunc.mode === 'signature2name' ? (
+          {isDescribe ? (
             <div>
-              <p className="text-xl font-mono text-gray-800 font-bold mb-2">{currentFunc.prompt}</p>
-              {currentFunc.parameters && currentFunc.parameters.length > 0 && (
-                <div className="inline-block text-left text-sm">
-                  <table className="mx-auto">
-                    <thead>
-                      <tr className="text-gray-400">
-                        <th className="px-2">参数</th><th className="px-2">类型</th><th className="px-2">说明</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentFunc.parameters.map(p => (
-                        <tr key={p.name} className="text-gray-600">
-                          <td className="px-2 font-mono">{p.name}</td>
-                          <td className="px-2 text-xs">{p.type || '-'}</td>
-                          <td className="px-2 text-xs">{p.description || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              {currentFunc.returnType && (
-                <p className="text-xs text-gray-400 mt-1">返回类型: <span className="font-mono">{currentFunc.returnType}</span></p>
-              )}
-            </div>
-          ) : currentFunc.mode === 'name2library' ? (
-            <div>
-              <p className="text-3xl font-bold text-gray-800 font-mono">{currentFunc.prompt}</p>
-              <p className="text-sm text-gray-400 mt-1">这个函数属于哪个库？</p>
-            </div>
-          ) : currentFunc.mode === 'name2usage' ? (
-            <div>
-              <p className="text-3xl font-bold text-gray-800 font-mono">{currentFunc.prompt}</p>
+              <p className="text-2xl font-bold text-gray-800 font-mono">{currentFunc.prompt}</p>
               <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-500 mt-1 inline-block">
                 {currentFunc.library}
               </span>
@@ -193,20 +161,14 @@ export default function Practice() {
 
         {/* Input */}
         <div className="relative">
-          {currentFunc.mode === 'name2usage' ? (
+          {isDescribe ? (
             <textarea
-              ref={inputRef as any}
+              ref={textareaRef}
               value={userInput}
               onChange={e => setUserInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(false);
-                }
-                if (e.key === 'Escape') handleSubmit(true);
-              }}
+              onKeyDown={handleKeyDown}
               disabled={!!feedback}
-              placeholder="用中文描述这个函数的功能..."
+              placeholder="描述这个函数的功能，大概说明白就行..."
               className={`input-field text-center py-4 min-h-[80px] ${
                 feedback === 'correct' ? 'border-green-400 bg-green-50' :
                 feedback === 'wrong' ? 'border-red-400 bg-red-50' : ''
@@ -220,11 +182,7 @@ export default function Practice() {
               onChange={e => setUserInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={!!feedback}
-              placeholder={
-                currentFunc.mode === 'name2library' ? '输入库名...' :
-                currentFunc.mode === 'code2name' ? '输入函数名...' :
-                '输入函数名...'
-              }
+              placeholder="输入函数名..."
               className={`input-field text-center text-xl py-4 ${
                 feedback === 'correct' ? 'border-green-400 bg-green-50' :
                 feedback === 'wrong' ? 'border-red-400 bg-red-50' : ''
@@ -233,7 +191,7 @@ export default function Practice() {
             />
           )}
 
-          {/* Feedback overlay */}
+          {/* Feedback */}
           {feedback && (
             <div className={`text-center mt-4 py-3 rounded-lg ${
               feedback === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -246,15 +204,12 @@ export default function Practice() {
                   <div className="text-red-500 line-through mb-1">{userInput || '(空)'}</div>
                   <div className="font-bold text-green-700 font-mono">{correctAnswer}</div>
                   <div className="text-sm mt-2 text-gray-500">
-                    <span className="font-mono">{currentFunc.library}.{correctAnswer}</span>
-                    <span className="mx-2">—</span>
-                    {currentFunc.description}
+                    {isDescribe ? (
+                      <span>以上为参考答案，意思差不多就算对</span>
+                    ) : (
+                      <>{currentFunc.library}.{correctAnswer} — {currentFunc.description}</>
+                    )}
                   </div>
-                  {currentFunc.codeExample && (
-                    <pre className="code-block text-left text-xs mt-2 mx-auto max-w-sm">
-                      {currentFunc.codeExample}
-                    </pre>
-                  )}
                 </div>
               )}
               {waitingConfirm && (
@@ -279,7 +234,7 @@ export default function Practice() {
         </button>
       </div>
 
-      {/* Status indicator */}
+      {/* Status */}
       {currentFunc.status !== 'new' && (
         <div className="text-center mt-3 text-xs text-gray-400">
           复习 · 掌握度 {Math.round(currentFunc.mastery * 100)}%

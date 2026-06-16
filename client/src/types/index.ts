@@ -12,7 +12,7 @@ export interface CodeExample {
   output?: string;
 }
 
-export type PracticeMode = 'name2usage' | 'usage2name' | 'code2name' | 'signature2name' | 'name2library';
+export type PracticeMode = 'name2usage' | 'usage2name';
 
 export interface PythonFunction {
   id: string;
