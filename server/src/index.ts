@@ -60,26 +60,6 @@ app.post('/api/data/import', (req, res) => {
   }
 });
 
-// Seed data loader — on first run, load seed functions
-app.post('/api/data/seed', (_req, res) => {
-  try {
-    const current = readJson<any>('functions.json');
-    if (current.functions && current.functions.length > 0) {
-      res.json({ seeded: false, message: '已有数据，跳过种子加载', count: current.functions.length });
-      return;
-    }
-    const seed = readJson<any>('seed_functions.json');
-    if (seed.functions && seed.functions.length > 0) {
-      writeJson('functions.json', seed);
-      res.json({ seeded: true, count: seed.functions.length });
-    } else {
-      res.json({ seeded: false, message: '种子数据为空' });
-    }
-  } catch (err: any) {
-    res.json({ seeded: false, error: err.message });
-  }
-});
-
 // Heartbeat: auto-shutdown when browser closes (packaged mode only)
 let lastHeartbeat = Date.now();
 app.get('/api/heartbeat', (_req, res) => {

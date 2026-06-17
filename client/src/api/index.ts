@@ -100,6 +100,4 @@ export const dataApi = {
   import: (data: any) =>
     request<{ success: boolean }>('/data/import', { method: 'POST', body: JSON.stringify(data) }),
 
-  seed: () =>
-    request<{ seeded: boolean; count?: number; message?: string }>('/data/seed', { method: 'POST' }),
 };

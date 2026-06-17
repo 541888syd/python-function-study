@@ -23614,24 +23614,6 @@ app.post("/api/data/import", (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
-app.post("/api/data/seed", (_req, res) => {
-  try {
-    const current = readJson("functions.json");
-    if (current.functions && current.functions.length > 0) {
-      res.json({ seeded: false, message: "\u5DF2\u6709\u6570\u636E\uFF0C\u8DF3\u8FC7\u79CD\u5B50\u52A0\u8F7D", count: current.functions.length });
-      return;
-    }
-    const seed = readJson("seed_functions.json");
-    if (seed.functions && seed.functions.length > 0) {
-      writeJson("functions.json", seed);
-      res.json({ seeded: true, count: seed.functions.length });
-    } else {
-      res.json({ seeded: false, message: "\u79CD\u5B50\u6570\u636E\u4E3A\u7A7A" });
-    }
-  } catch (err) {
-    res.json({ seeded: false, error: err.message });
-  }
-});
 var lastHeartbeat = Date.now();
 app.get("/api/heartbeat", (_req, res) => {
   lastHeartbeat = Date.now();
