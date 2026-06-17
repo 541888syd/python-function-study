@@ -227,7 +227,7 @@ export default function FunctionList() {
                 onChange={e => setAddForm(f => ({ ...f, returnType: e.target.value }))} className="input-field" />
               <textarea placeholder="代码示例 (可选)" value={addForm.codeExample}
                 onChange={e => setAddForm(f => ({ ...f, codeExample: e.target.value }))}
-                className="input-field h-24 font-mono text-sm" />
+                className="input-field h-32 font-mono text-sm whitespace-pre overflow-x-auto resize-y" wrap="off" />
               <input type="text" placeholder="名字来源/缩写含义 (可选)" value={addForm.etymology}
                 onChange={e => setAddForm(f => ({ ...f, etymology: e.target.value }))} className="input-field" />
               <input type="text" placeholder="相关函数，逗号分隔 (可选)" value={addForm.relatedFunctions}
@@ -282,7 +282,7 @@ export default function FunctionList() {
                   const code = e.target.value;
                   setEditingFunc(f => f ? { ...f, codeExamples: code ? [{ code }] : [] } : null);
                 }}
-                className="input-field h-24 font-mono text-sm" />
+                className="input-field h-32 font-mono text-sm whitespace-pre overflow-x-auto resize-y" wrap="off" />
               <label className="block text-sm text-gray-500">名字来源</label>
               <input type="text" value={editingFunc.etymology || ''}
                 onChange={e => setEditingFunc(f => f ? { ...f, etymology: e.target.value } : null)} className="input-field" />
